@@ -1,0 +1,19 @@
+{
+  "name": "edefine/symfony-code-standards",
+  "description": "Code standards tools for Symfony projects.",
+  "license": "MIT",
+  "type": "library",
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=8.0",
+    "friendsofphp/php-cs-fixer": "^3.95.2",
+    "phpmd/phpmd": "^3.0",
+    "phpstan/phpstan": "2.1.56",
+    "phpunit/phpunit": "^13.1.13",
+    "rector/rector": "^2.4.5",
+    "squizlabs/php_codesniffer": "^4.0.1"
+  },
+  "bin": [
+    "bin/code-check"
+  ]
+}

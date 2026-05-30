@@ -1,0 +1,341 @@
+#!/usr/bin/env bash
+
+# cd "${0%/*}/.." || exit
+
+config_file="scs.ini"
+if [[ ! -e "$config_file" ]]; then
+  echo "Config file $config_file does not exist"
+  exit 1
+fi
+
+source "$config_file"
+
+if [[ -z "$DOMAIN" ]]; then
+  echo "DOMAIN is not set in $config_file"
+  exit 1
+fi
+
+no_color='\033[0m'
+color_success='\033[0;32m'
+color_warning='\033[0;33m'
+result_color_ok='\033[0;32m'
+result_color_skipped='\033[0;33m'
+result_color_fail='\033[0;31m'
+result_color_info='\033[0;36m'
+
+function print_test_result() {
+  if [ "$2" -eq 0 ]; then
+    echo -e "$1 ${result_color_ok}✔ OK${no_color}      \t$3s\t$4"
+  elif [ "$2" -eq -1 ]; then
+    echo -e "$1 ${result_color_skipped}⚠ SKIPPED${no_color} \t$3s\t$4"
+  else
+    echo -e "$1 ${result_color_fail}✗ FAILED${no_color}  \t$3s\t$4"
+  fi
+}
+
+function usage() {
+  echo "Usage:"
+  echo "  $0 [options] [path]"
+  echo ""
+  echo "Analysis Options:"
+  echo "  -U|--phpunit       Run PHPUnit tests"
+  echo "  -C|--phpcs         Run PHPCS checks"
+  echo "  -CF|--php-cs-fixer Run PHP-CS-Fixer checks"
+  echo "  -M|--phpmd         Run PHPMD checks"
+  echo "  -S|--phpstan       Run PHPStan checks"
+  echo "  -R|--rector        Run Rector checks"
+  echo ""
+  echo "Miscellaneous Options:"
+  echo "  -c|--coverage      Generate code coverage reports"
+  echo "  -f|--fix           Try to fix problems"
+  echo "  -q|--quiet         Output less information"
+  echo "  -v|--verbose       Output more information"
+  echo "  -u|--usage         Output this message"
+}
+
+function run_phpunit() {
+  php_options=""
+  coverage_options="--no-coverage"
+  if [ "$1" = true ]; then
+    php_options="-d xdebug.mode=coverage"
+    coverage_options="--coverage-text=public/coverage-phpunit/summary.log --coverage-html=public/coverage-phpunit"
+  fi
+
+  local options=""
+  if [ "$2" -eq -1 ]; then
+    options="> /dev/null"
+  elif [ "$2" -eq 1 ]; then
+    options="--testdox"
+  fi
+
+  eval "php $php_options vendor/bin/phpunit --colors=never $coverage_options $3 $options"
+  return $?
+}
+
+function run_phpcs() {
+  local path="$2"
+  local options=""
+  if [ "$1" -eq -1 ]; then
+    options="> /dev/null"
+  elif [ "$1" -eq 1 ]; then
+    options="-v"
+  fi
+
+  eval "vendor/bin/phpcs $path $options"
+  return $?
+}
+
+function run_php_cs_fixer() {
+  local path="$3"
+
+  local fix_options="--dry-run"
+  if [ "$1" = true ]; then
+    fix_options=""
+  fi
+
+  local options=""
+  if [ "$2" -eq -1 ]; then
+    options="> /dev/null 2>&1"
+  elif [ "$2" -eq 1 ]; then
+    options="--verbose"
+  fi
+
+  eval "vendor/bin/php-cs-fixer fix $fix_options --diff $path $options"
+  return $?
+}
+
+function run_phpmd() {
+  local path="$2"
+  local options=""
+  if [ "$1" -eq -1 ]; then
+    options="> /dev/null"
+  elif [ "$1" -eq 1 ]; then
+    options=""
+  fi
+
+  if [ -z "$path" ]; then
+    path="src tests"
+  fi
+
+  eval "vendor/bin/phpmd analyze --format=ansi --ruleset=phpmd.xml.dist $path $options"
+  return $?
+}
+
+function run_phpstan() {
+  local path="$2"
+  local options=""
+  if [ "$1" -eq -1 ]; then
+    options="> /dev/null 2>&1"
+  elif [ "$1" -eq 1 ]; then
+    options="--verbose"
+  fi
+
+  eval "vendor/bin/phpstan analyse $path --memory-limit=-1 $options"
+  return $?
+}
+
+function run_rector() {
+  local path="$2"
+  local options=""
+  if [ "$1" -eq -1 ]; then
+    options="> /dev/null 2>&1"
+  elif [ "$1" -eq 1 ]; then
+    options="--debug"
+  fi
+
+  eval "vendor/bin/rector process --clear-cache --dry-run $path $options"
+  return $?
+}
+
+path=""
+coverage=false
+fix=false
+verbosity=0
+enable_phpunit=false
+enable_phpcs=false
+enable_php_cs_fixer=false
+enable_phpmd=false
+enable_phpstan=false
+enable_rector=false
+
+enable_all=true
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -c|--coverage)
+      coverage=true
+      shift
+      ;;
+    -f|--fix)
+      fix=true
+      shift
+      ;;
+    -q|--quiet)
+      verbosity=-1
+      shift
+      ;;
+    -v|--verbose)
+      verbosity=1
+      shift
+      ;;
+    -u|--usage)
+      usage
+      exit 0
+      ;;
+    -U|--phpunit)
+      enable_phpunit=true
+      enable_all=false
+      shift
+      ;;
+    -C|--phpcs)
+      enable_phpcs=true
+      enable_all=false
+      shift
+      ;;
+    -CF|--php-cs-fixer)
+      enable_php_cs_fixer=true
+      enable_all=false
+      shift
+      ;;
+    -M|--phpmd)
+      enable_phpmd=true
+      enable_all=false
+      shift
+      ;;
+    -S|--phpstan)
+      enable_phpstan=true
+      enable_all=false
+      shift
+      ;;
+    -R|--rector)
+      enable_rector=true
+      enable_all=false
+      shift
+      ;;
+    *)
+      path=$1
+      shift
+      ;;
+  esac
+done
+
+if [ "$enable_all" = true ]; then
+  enable_phpunit=true
+  enable_phpcs=true
+  enable_php_cs_fixer=true
+  enable_phpmd=true
+  enable_phpstan=true
+  enable_rector=true
+fi
+
+echo "Code check started at $(date)"
+if [ "$coverage" = true ]; then
+  echo -e "${color_success}Code coverage enabled${no_color}"
+else
+  echo -e "${color_warning}Code coverage disabled${no_color}"
+fi
+
+if [ "$fix" = true ]; then
+  echo -e "${color_success}Code fixing enabled${no_color}"
+else
+  echo -e "${color_warning}Code fixing disabled${no_color}"
+fi
+
+echo ""
+start_time=$(date +%s)
+
+result_phpunit=-1
+time_phpunit=0
+coverage_phpunit="N/A"
+if [ "$enable_phpunit" = true ]; then
+  start_phpunit=$(date +%s)
+  run_phpunit $coverage $verbosity "$path"
+  result_phpunit=$?
+  time_phpunit=$(($(date +%s) - start_phpunit))
+  if [ -f "public/coverage-phpunit/summary.log" ]; then
+      coverage_phpunit=$(cat public/coverage-phpunit/summary.log | grep "^  Lines" | grep -Eo "[0-9]+\.[0-9]+%")
+  fi
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "PHPUnit     " $result_phpunit $time_phpunit "${result_color_info}❤ ${coverage_phpunit}${no_color}\t➡ ${DOMAIN}/coverage-phpunit/"
+fi
+
+result_phpcs=-1
+time_phpcs=0
+if [ "$enable_phpcs" = true ]; then
+  start_phpcs=$(date +%s)
+  run_phpcs $verbosity "$path"
+  result_phpcs=$?
+  time_phpcs=$(($(date +%s) - start_phpcs))
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "PHPCS       " $result_phpcs $time_phpcs
+fi
+
+result_php_cs_fixer=-1
+time_php_cs_fixer=0
+if [ "$enable_php_cs_fixer" = true ]; then
+  start_php_cs_fixer=$(date +%s)
+  run_php_cs_fixer $fix $verbosity "$path"
+  result_php_cs_fixer=$?
+  time_php_cs_fixer=$(($(date +%s) - start_php_cs_fixer))
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "PHP-CS-Fixer" $result_php_cs_fixer $time_php_cs_fixer
+fi
+
+result_phpmd=-1
+time_phpmd=0
+if [ "$enable_phpmd" = true ]; then
+  start_phpmd=$(date +%s)
+  run_phpmd $verbosity "$path"
+  result_phpmd=$?
+  time_phpmd=$(($(date +%s) - start_phpmd))
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "PHPMD       " $result_phpmd $time_phpmd
+fi
+
+result_phpstan=-1
+time_phpstan=0
+if [ "$enable_phpstan" = true ]; then
+  start_phpstan=$(date +%s)
+  run_phpstan $verbosity "$path"
+  result_phpstan=$?
+  time_phpstan=$(($(date +%s) - start_phpstan))
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "PHPStan     " $result_phpstan $time_phpstan
+fi
+
+result_rector=-1
+time_rector=0
+if [ "$enable_rector" = true ]; then
+  start_rector=$(date +%s)
+  run_rector $verbosity "$path"
+  result_rector=$?
+  time_rector=$(($(date +%s) - start_rector))
+fi
+if [ "$verbosity" -lt 0 ]; then
+  print_test_result "Rector      " $result_rector $time_rector
+fi
+
+result_string=" $result_phpunit $result_phpcs $result_php_cs_fixer $result_phpmd $result_phpstan $result_rector"
+result=0
+if [[ "$result_string" =~ [[:space:]][1-9] ]]; then
+  result=1
+fi
+
+if [ "$verbosity" -ge 0 ]; then
+  echo ""
+  print_test_result "PHPUnit     " $result_phpunit $time_phpunit "${result_color_info}❤ ${coverage_phpunit}${no_color}\t➡ ${DOMAIN}/coverage-phpunit/"
+  print_test_result "PHPCS       " $result_phpcs $time_phpcs
+  print_test_result "PHP-CS-Fixer" $result_php_cs_fixer $time_php_cs_fixer
+  print_test_result "PHPMD       " $result_phpmd $time_phpmd
+  print_test_result "PHPStan     " $result_phpstan $time_phpstan
+  print_test_result "Rector      " $result_rector $time_rector
+fi
+
+echo ""
+print_test_result "Total       " $result $(($(date +%s) - start_time))
+
+exit $result
