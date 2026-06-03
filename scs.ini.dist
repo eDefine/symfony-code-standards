@@ -1,1 +1,7 @@
 DOMAIN=http://localhost
+PHPUNIT_CONFIG=config/phpunit.dist.xml
+PHPCS_CONFIG=config/phpcs.xml.dist
+PHP_CS_FIXER_CONFIG=config/.php-cs-fixer.dist.php
+PHPMD_CONFIG=config/phpmd.xml.dist
+PHPSTAN_CONFIG=config/phpstan.neon.dist
+RECTOR_CONFIG=config/rector.php
