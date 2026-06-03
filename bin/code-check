@@ -212,7 +212,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      path=$1
+      path="$path $1"
       shift
       ;;
   esac
