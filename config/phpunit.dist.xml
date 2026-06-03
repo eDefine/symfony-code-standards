@@ -6,10 +6,10 @@
     colors="true"
     failOnNotice="true"
     failOnWarning="true"
-    bootstrap="tests/bootstrap.php"
+    bootstrap="../../../../tests/bootstrap.php"
     stopOnFailure="false"
     stopOnError="false"
-    cacheDirectory=".phpunit.cache"
+    cacheDirectory="../../../../var/cache/.phpunit.cache"
     requireCoverageMetadata="true"
     displayDetailsOnTestsThatTriggerDeprecations="true"
     displayDetailsOnTestsThatTriggerErrors="true"
@@ -30,12 +30,12 @@
     </php>
     <testsuites>
         <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+            <directory>../../../../tests</directory>
         </testsuite>
     </testsuites>
     <source ignoreSuppressionOfDeprecations="true" restrictNotices="true" restrictWarnings="true" ignoreIndirectDeprecations="true">
         <include>
-            <directory>src</directory>
+            <directory>../../../../src</directory>
         </include>
     </source>
     <extensions>
