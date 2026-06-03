@@ -3,5 +3,5 @@ parameters:
     # editorUrl: 'phpstorm://open?file=%%file%%&line=%%line%%'
     treatPhpDocTypesAsCertain: false
     paths:
-        - src
-        - tests
+        - ../../../../src
+        - ../../../../tests
