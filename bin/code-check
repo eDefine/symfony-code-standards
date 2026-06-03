@@ -90,7 +90,7 @@ function run_phpunit() {
     options="--testdox"
   fi
 
-  eval "php $php_options vendor/bin/phpunit --colors=never $coverage_options $3 $options"
+  eval "php $php_options vendor/bin/phpunit --configuration=$PHPUNIT_CONFIG --colors=never $coverage_options $3 $options"
   return $?
 }
 
@@ -103,7 +103,7 @@ function run_phpcs() {
     options="-v"
   fi
 
-  eval "vendor/bin/phpcs $path $options"
+  eval "vendor/bin/phpcs --standard=$PHPCS_CONFIG $path $options"
   return $?
 }
 
@@ -122,7 +122,7 @@ function run_php_cs_fixer() {
     options="--verbose"
   fi
 
-  eval "vendor/bin/php-cs-fixer fix $fix_options --config .php-cs-fixer.dist.php --show-progress dots --diff $path $options"
+  eval "vendor/bin/php-cs-fixer fix $fix_options --config $PHP_CS_FIXER_CONFIG --show-progress dots --diff $path $options"
   return $?
 }
 
@@ -139,7 +139,7 @@ function run_phpmd() {
     path="src tests"
   fi
 
-  eval "vendor/bin/phpmd analyze --format=ansi --ruleset=phpmd.xml.dist $path $options"
+  eval "vendor/bin/phpmd analyze --format=ansi --ruleset=$PHPMD_CONFIG $path $options"
   return $?
 }
 
@@ -152,7 +152,7 @@ function run_phpstan() {
     options="--verbose"
   fi
 
-  eval "vendor/bin/phpstan analyse $path --memory-limit=-1 $options"
+  eval "vendor/bin/phpstan analyse --configuration $PHPSTAN_CONFIG --memory-limit=-1 $path $options"
   return $?
 }
 
@@ -165,7 +165,7 @@ function run_rector() {
     options="--debug"
   fi
 
-  eval "vendor/bin/rector process --clear-cache --dry-run $path $options"
+  eval "vendor/bin/rector process --config=$RECTOR_CONFIG --clear-cache --dry-run $path $options"
   return $?
 }
 
