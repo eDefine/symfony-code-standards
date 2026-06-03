@@ -1,7 +1,7 @@
 <?php
 
 $finder = (new PhpCsFixer\Finder())
-    ->in(__DIR__)
+    ->in(getcwd())
     ->exclude('docker')
     ->exclude('var')
     ->notPath([
@@ -12,6 +12,7 @@ $finder = (new PhpCsFixer\Finder())
 ;
 
 return (new PhpCsFixer\Config())
+    ->setCacheFile(getcwd() . '/var/cache/.php-cs-fixer.cache')
     ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
     ->setRiskyAllowed(true)
     ->setRules([

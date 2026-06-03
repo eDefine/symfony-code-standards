@@ -1,5 +1,5 @@
 DOMAIN=http://localhost
-PHPUNIT_CONFIG=vendor/edefine/symfony-code-standards/config/config/phpunit.dist.xml
+PHPUNIT_CONFIG=vendor/edefine/symfony-code-standards/config/phpunit.dist.xml
 PHPCS_CONFIG=vendor/edefine/symfony-code-standards/config/phpcs.xml.dist
 PHP_CS_FIXER_CONFIG=vendor/edefine/symfony-code-standards/config/.php-cs-fixer.dist.php
 PHPMD_CONFIG=vendor/edefine/symfony-code-standards/config/phpmd.xml.dist
