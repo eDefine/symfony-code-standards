@@ -14,7 +14,7 @@ return RectorConfig::configure()
         getcwd() . '/tests',
     ])
     ->withPHPStanConfigs([getcwd() . '/vendor/edefine/symfony-code-standards/config/phpstan.neon.dist'])
-    ->withSets([LevelSetList::UP_TO_PHP_83])
+    ->withSets([LevelSetList::UP_TO_PHP_85])
     ->withSkip([
         ReadOnlyPropertyRector::class, // "private readonly Uuid $id" is not working, doctrine bug
     ])
