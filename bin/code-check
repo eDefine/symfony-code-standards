@@ -234,6 +234,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
+      if [[ "$1" == -* ]]; then
+        echo "Unknown option: $1"
+        usage
+        exit 1
+      fi
       path="$path $1"
       shift
       ;;

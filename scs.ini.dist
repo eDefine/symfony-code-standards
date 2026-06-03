@@ -1,7 +1,7 @@
 DOMAIN=http://localhost
-PHPUNIT_CONFIG=config/phpunit.dist.xml
-PHPCS_CONFIG=config/phpcs.xml.dist
-PHP_CS_FIXER_CONFIG=config/.php-cs-fixer.dist.php
-PHPMD_CONFIG=config/phpmd.xml.dist
-PHPSTAN_CONFIG=config/phpstan.neon.dist
-RECTOR_CONFIG=config/rector.php
+PHPUNIT_CONFIG=vendor/edefine/symfony-code-standards/config/config/phpunit.dist.xml
+PHPCS_CONFIG=vendor/edefine/symfony-code-standards/config/phpcs.xml.dist
+PHP_CS_FIXER_CONFIG=vendor/edefine/symfony-code-standards/config/.php-cs-fixer.dist.php
+PHPMD_CONFIG=vendor/edefine/symfony-code-standards/config/phpmd.xml.dist
+PHPSTAN_CONFIG=vendor/edefine/symfony-code-standards/config/phpstan.neon.dist
+RECTOR_CONFIG=vendor/edefine/symfony-code-standards/config/rector.php
